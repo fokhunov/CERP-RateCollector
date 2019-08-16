@@ -1,0 +1,5 @@
+beautifulsoup4==4.6.0
+requests==2.18.4
+pika==0.12.0b2
+pytz==2013.7
+boto3==1.9.191

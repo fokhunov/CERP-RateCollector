@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+
+Globals:
+  Function:
+    Runtime: python2.7
+    Timeout: 60
+
+
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+      - staging
+      - prod
+  Country:
+    Type: String
+    AllowedValues:
+      - tj
+      - uz
+      - kg
+      - kz
+  LogLevel:
+    Type: String
+    Default: ERROR
+    AllowedValues:
+      - DEBUG
+      - INFO
+      - ERROR
+
+
+Resources:
+  LambdaFunc:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}"
+      Description: !Sub "Collects currency exchange rates for ${Country}"
+      CodeUri: ../build/
+      Handler: app.lambda_handler
+      ReservedConcurrentExecutions: 1
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          CERP_SNS_TOPIC: !Ref LambdaOutputTopic
+          CERP_COUNTRY: !Ref Country
+          CERP_LOG_LEVEL: !Ref LogLevel
+      Events:
+        Cron:
+          Type: Schedule
+          Properties:
+            Schedule: rate(10 minutes)
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: "lambda.amazonaws.com"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref LambdaOutputTopic
+
+  LambdaOutputTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      TopicName: !Sub '${AWS::StackName}-output'
+      DisplayName: "Where Lambda publishes results"
+
+
+Outputs:
+  LambdaFuncArn:
+    Value: !GetAtt LambdaFunc.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaArn'
+  LambdaOutputTopic:
+    Value: !Ref LambdaOutputTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-OutputTopic'
