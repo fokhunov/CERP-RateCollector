@@ -2,27 +2,29 @@
 
 RateCollector - is one of the Currency Exchange Rate Platform (CERP) services which collects data from websites or API endpoints.
 
-
 ## Deployment
 
 ```
-make deploy c=tj e=staging v=v1.0.0 ll=ERROR
-```
-
-#### Available countries:
+Available countries:
 - tj
 - uz
 - kg
 - kz
+```
 
-#### Available environments:
-- staging
+```
+Available environments:
 - prod
+```
 
-#### Available log levels:
+```
+Available log levels:
 - DEBUG
 - INFO
 - ERROR
+```
 
-## Todo:
-* minify deployment artifacts size (currently about 10mb)
+Run following command to deploy AWS Lambda app:
+```
+make deploy c=<country> e=<env> v=<version> ll=<log_level>
+```
