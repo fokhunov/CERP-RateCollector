@@ -9,11 +9,6 @@ Globals:
 
 
 Parameters:
-  Env:
-    Type: String
-    AllowedValues:
-      - staging
-      - prod
   Country:
     Type: String
     AllowedValues:

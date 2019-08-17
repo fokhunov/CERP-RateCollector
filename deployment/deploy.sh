@@ -15,7 +15,7 @@ VERSION=${3?version should be provided as the third parameter}
 LOGLEVEL=${4?log level should be provided as the third parameter}
 
 BASE_DIR="$(dirname $0)"
-PARAMS="Env=$ENV Country=$COUNTRY LogLevel=$LOGLEVEL"
+PARAMS="Country=$COUNTRY LogLevel=$LOGLEVEL"
 
 PROJECT_NAME="CurrencyExchangeRatePlatform"
 SERVICE_NAME="CERP-RateCollector-${COUNTRY}"
@@ -28,22 +28,6 @@ GLOBAL_TAGS="Owner=build4use \
     Version=$VERSION"
 
 step "Begin deployment of ${STACK_NAME}"
-
-if [[ "$VERSION" != v* ]] && [[ "$ENV" == "prod" ]]
-then
-    echo "Warning: will deploy version '$VERSION' to '$ENV' environment which doesn't look like a tag!"
-    read -r -p "Are you sure? [y/N] " response
-
-    case "$response" in
-        [yY][eE][sS]|[yY])
-            ;;
-        *)
-            echo "choice was not y/Y - stopping"
-            exit 1
-            ;;
-    esac
-fi
-
 
 step "Send resources to S3"
 LAMBDA_DEPLOYMENT_BUCKET=$(echo "$STACK_NAME-lambda" | tr '[:upper:]' '[:lower:]')
