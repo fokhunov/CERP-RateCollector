@@ -6,9 +6,9 @@ import re
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 
-import base
-from internal import currency
-from internal import rate_helper as rate
+from src.parser import base
+from src.parser.internal import currency
+from src.parser.internal import rate_helper as rate
 
 
 class ParserKZ(base.Parser):

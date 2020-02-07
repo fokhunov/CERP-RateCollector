@@ -1,11 +1,13 @@
 .PHONY: install-deps
 install-deps:
-	pip install -r requirements.txt -t ./build
+	pip3 install -r requirements.txt -t build
 
 
 .PHONY: fast-build
 fast-build:
-	cp -r ./src/ build/
+	mkdir -p build/src/
+	cp -r src/ build/src/
+	cp app.py build/
 
 
 .PHONY: build

@@ -1,7 +1,7 @@
 from time import time
 
-from internal import rate_helper as rate
-from internal import time_helper as custom_time
+from src.parser.internal import rate_helper as rate
+from src.parser.internal import time_helper as custom_time
 
 
 class Parser:
@@ -49,7 +49,7 @@ class Parser:
 
         except Exception as e:
             self.log.error({
-                "msg": e.message,
+                "msg": str(e),
                 "country": self.country,
                 "bank_id": bank_id,
             })

@@ -3,14 +3,15 @@ from decimal import Decimal
 
 # from_string() transforms rate value from string
 def from_string(val):
-    if isinstance(val, basestring):
+    if isinstance(val, str):
         val = val.replace(" ", "").strip()
         if ',' in val and '.' in val:
             # if we have dot '.' and comma ',' -> comma used as thousand separation so ignore it
             val = val.replace(",", "")
         else:
             val = val.replace(",", ".")
-    if val == "" or val is None:
+
+    if val is None or val == "" or val == "–":
         return 0
 
     val = round(Decimal(val) * 10000)

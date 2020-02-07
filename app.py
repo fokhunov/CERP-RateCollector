@@ -6,11 +6,11 @@ import zlib
 
 import boto3
 
-from fetcher import Fetcher
-from parser import ParserKG
-from parser import ParserKZ
-from parser import ParserTJ
-from parser import ParserUZ
+from src.fetcher import Fetcher
+from src.parser import ParserKG
+from src.parser import ParserKZ
+from src.parser import ParserTJ
+from src.parser import ParserUZ
 
 # Supported countries
 TJ = "tj"
@@ -85,4 +85,4 @@ if __name__ == "__main__":
     #
     f = Fetcher()
     p = ParserTJ(logger, f)
-    print (compress_json(p.parse_all()))
+    print(compress_json(p.parse_all()))
