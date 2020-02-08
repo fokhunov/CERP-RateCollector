@@ -518,6 +518,7 @@ class ParserTJ(base.Parser):
                 "tj_nbp": self.parse_nbp,
                 "tj_spitamen": self.parse_spitamen,
                 "tj_ibt": self.parse_ibt,
+                "tj_cbt": self.parse_cbt,
                 "tj_alif": self.parse_alif,
                 "tj_nbt": self.parse_nb,
                 "tj_imonintl": self.parse_imonintl,
