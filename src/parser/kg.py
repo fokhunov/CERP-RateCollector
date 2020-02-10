@@ -495,48 +495,48 @@ class ParserKG(base.Parser):
             raise base.ParseError(e.message)
 
     # 12. Parse Optima bank (web page)
-    # def parse_optimabank(self):
-    #     result = self.fetcher.fetch(
-    #         "https://www.optimabank.kg/en/currency-rates.html?view=default"
-    #     )
-    #
-    #     try:
-    #         context = BeautifulSoup(
-    #             result,
-    #             "html.parser",
-    #             parse_only=SoupStrainer('table', {'class': 'currency_table'})
-    #         )
-    #         tags = context.find_all()
-    #         tags = tags[0].find_all('tr')
-    #         if tags:
-    #             rates = {}
-    #             for tag in tags:
-    #                 if re.search(ur'Доллар', tag.text):
-    #                     rates['usd_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-    #                     rates['usd_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-    #                     continue
-    #
-    #                 if re.search(ur'Евро', tag.text):
-    #                     rates['eur_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-    #                     rates['eur_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-    #                     continue
-    #
-    #                 if re.search(ur'рубль', tag.text):
-    #                     rates['rub_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-    #                     rates['rub_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-    #                     continue
-    #
-    #                 if re.search(ur'тенге', tag.text):
-    #                     rates['kzt_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-    #                     rates['kzt_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-    #                     continue
-    #
-    #             return rates
-    #
-    #         else:
-    #             raise base.ParseError("rates not found")
-    #     except Exception as e:
-    #         raise base.ParseError(e.message)
+    def parse_optimabank(self):
+        result = self.fetcher.fetch(
+            "https://www.optimabank.kg/en/currency-rates.html?view=default"
+        )
+
+        try:
+            context = BeautifulSoup(
+                result,
+                "html.parser",
+                parse_only=SoupStrainer('table', {'class': 'currency_table'})
+            )
+            tags = context.find_all()
+            tags = tags[0].find_all('tr')
+            if tags:
+                rates = {}
+                for tag in tags:
+                    if re.search(r'Доллар', tag.text):
+                        rates['usd_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        rates['usd_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
+                        continue
+
+                    if re.search(r'Евро', tag.text):
+                        rates['eur_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        rates['eur_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
+                        continue
+
+                    if re.search(r'рубль', tag.text):
+                        rates['rub_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        rates['rub_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
+                        continue
+
+                    if re.search(r'тенге', tag.text):
+                        rates['kzt_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        rates['kzt_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
+                        continue
+
+                return rates
+
+            else:
+                raise base.ParseError("rates not found")
+        except Exception as e:
+            raise base.ParseError(e.message)
 
     # 13. Parse Rib (web page)
     def parse_rib(self):
