@@ -149,22 +149,19 @@ class ParserTJ(base.Parser):
 
     # 6. Parse First Microfinance (web page)
     def parse_fmfb(self):
-        result = self.fetcher.fetch("http://www.fmfb.com.tj/en/")
+        result = self.fetcher.fetch("https://fmfb.tj/en/")
         try:
-            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="kurs-valuta"))
-            tags = context.find_all("table")
-            tags = tags[1].find_all('tr')
+            context = BeautifulSoup(result, "html.parser")
+            context = context.findAll("div", {"class": "new-currency-last"})
+            tags = context[0].find_all("div")
             if tags:
-                usd = tags[1].find_all('td')
-                eur = tags[2].find_all('td')
-                rub = tags[3].find_all('td')
                 return {
-                    "usd_buy": rate.from_string(usd[1].getText()),
-                    "usd_sale": rate.from_string(usd[2].getText()),
-                    "eur_buy": rate.from_string(eur[1].getText()),
-                    "eur_sale": rate.from_string(eur[2].getText()),
-                    "rub_buy": rate.from_string(rub[1].getText()),
-                    "rub_sale": rate.from_string(rub[2].getText()),
+                    "usd_buy": rate.from_string(tags[3].getText()),
+                    "usd_sale": rate.from_string(tags[7].getText()),
+                    "eur_buy": rate.from_string(tags[4].getText()),
+                    "eur_sale": rate.from_string(tags[8].getText()),
+                    "rub_buy": rate.from_string(tags[5].getText()),
+                    "rub_sale": rate.from_string(tags[9].getText()),
                 }
             else:
                 raise base.ParseError("rates not found")
