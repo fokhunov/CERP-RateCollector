@@ -173,40 +173,33 @@ class ParserTJ(base.Parser):
         # todo: implementation is missed.
         return {}
 
-    # 8. Parse Kazkomercbank (web page)
-    def parse_kkb(self):
-        now = time.now_date_key(self.country).split("-")
-        params = {
-            'day': now[2],
-            'month': now[1],
-            'year': now[0],
-            'view': "Показать"
-        }
-        result = self.fetcher.fetch(
-            "http://www.kkb.tj/ru/page/RatesExchanges",
-            method="POST",
-            data=params,
-        )
+    # 8. Parse Halykbank (web page)
+    def parse_halykbank(self):
+        result = self.fetcher.fetch("https://halykbank.tj/en/exchange-rates")
         try:
-            context = BeautifulSoup(
-                result,
-                "html.parser",
-                parse_only=SoupStrainer('table', {'class': re.compile(r'tbl_text')})
-            )
-            tags = context.find_all('tr')
+            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id='category1'))
+            tags = context.find_all('div', {"class": "currency__columns"})
             if tags:
-                usd = tags[1].find_all('td')
-                eur = tags[2].find_all('td')
-                rub = tags[3].find_all('td')
+                rates = {}
+                for tag in tags:
+                    values = tag.find_all('div', {"class": "currency__value"})
 
-                return {
-                    "usd_buy": rate.from_string(usd[2].getText()),
-                    "usd_sale": rate.from_string(usd[3].getText()),
-                    "eur_buy": rate.from_string(eur[2].getText()),
-                    "eur_sale": rate.from_string(eur[3].getText()),
-                    "rub_buy": rate.from_string(rub[2].getText()) / 10,
-                    "rub_sale": rate.from_string(rub[3].getText()) / 10,
-                }
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(values[0].getText())
+                        rates["usd_sale"] = rate.from_string(values[1].getText())
+                        continue
+
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(values[0].getText())
+                        rates["eur_sale"] = rate.from_string(values[1].getText())
+                        continue
+
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(values[0].getText())
+                        rates["rub_sale"] = rate.from_string(values[1].getText())
+                        continue
+
+                return rates
             else:
                 raise base.ParseError("rates not found")
         except Exception as e:
@@ -503,14 +496,14 @@ class ParserTJ(base.Parser):
     def parse_all(self):
         return self.handle_execute(
             {
-                "tj_agro": self.parse_agro,
+                # "tj_agro": self.parse_agro, - bank in bankruptcy
                 "tj_amonat": self.parse_amonat,
-                "tj_tsb": self.parse_tsb,
+                # "tj_tsb": self.parse_tsb,   - bank in bankruptcy
                 "tj_eskhata": self.parse_eskhata,
                 "tj_tawhidbank": self.parse_tawhidbank,
                 "tj_fmfb": self.parse_fmfb,
-                # "tj_parse_tejaratbank": self.parse_tejaratbank,
-                "tj_kkb": self.parse_kkb,
+                # "tj_parse_tejaratbank": self.parse_tejaratbank, - todo: need to implement
+                "tj_halykbank": self.parse_halykbank,
                 "tj_arvand": self.parse_arvand,
                 "tj_nbp": self.parse_nbp,
                 "tj_spitamen": self.parse_spitamen,

@@ -44,7 +44,7 @@ Resources:
         Cron:
           Type: Schedule
           Properties:
-            Schedule: rate(10 minutes)
+            Schedule: rate(5 minutes)
 
   LambdaRole:
     Type: AWS::IAM::Role

@@ -13,6 +13,7 @@ class TestParsingTajikistan(unittest.TestCase):
 
         self.parser = ParserTJ(logger, Fetcher())
 
+    @unittest.skip("Agroinvestbank rates")
     # 1. Parse Agroinvestbank (web page)
     def test_parse_agro(self):
         rates = self.parser.parse_agro()
@@ -24,6 +25,7 @@ class TestParsingTajikistan(unittest.TestCase):
         rates = self.parser.parse_amonat()
         self.assert_rates("amonat", rates)
 
+    @unittest.skip("Tojiksodirot rates")
     # 3. Parse Tojiksodirot (web page)
     def test_parse_tsb(self):
         rates = self.parser.parse_tsb()
@@ -54,10 +56,10 @@ class TestParsingTajikistan(unittest.TestCase):
         rates = self.parser.parse_tejaratbank()
         self.assert_rates("tejaratbank", rates)
 
-    # 8. Parse Kazkomercbank (web page)
-    def test_parse_kkb(self):
-        rates = self.parser.parse_kkb()
-        self.assert_rates("kkb", rates)
+    # 8. Parse Halykbank (web page)
+    def test_parse_halykbank(self):
+        rates = self.parser.parse_halykbank()
+        self.assert_rates("halykbank", rates)
 
     # 9. Parse Arvand (web page)
     def test_parse_arvand(self):
