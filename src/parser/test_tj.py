@@ -115,6 +115,11 @@ class TestParsingTajikistan(unittest.TestCase):
         rates = self.parser.parse_ardo()
         self.assert_rates("ardo", rates)
 
+    # 19. Parse Finca (web page)
+    def test_parse_finca(self):
+        rates = self.parser.parse_finca()
+        self.assert_rates("finca", rates)
+
     def assert_rates(self, bank, rates):
         print(bank + ":", rates)
         self.assertIsNotNone(rates['usd_buy'])

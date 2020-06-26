@@ -525,6 +525,37 @@ class ParserTJ(base.Parser):
         except Exception as e:
             raise base.ParseError(e.message)
 
+    # 19. Parse Finca (web page)
+    def parse_finca(self):
+        result = self.fetcher.fetch("https://www.finca.tj/en/")
+        try:
+            context = BeautifulSoup(
+                result,
+                "html.parser",
+                parse_only=SoupStrainer('table', {'class': re.compile('exchange_rate_table')})
+            )
+            tags = context.find_all('tr')
+            if tags:
+                rates = {}
+                for tag in tags:
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                return rates
+            else:
+                raise base.ParseError("rates not found")
+        except Exception as e:
+            raise base.ParseError(e.message)
+
     # parse_all collects all rates for Tajikistan
     def parse_all(self):
         return self.handle_execute(
