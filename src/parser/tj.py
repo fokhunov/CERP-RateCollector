@@ -582,7 +582,7 @@ class ParserTJ(base.Parser):
                 "tj_eskhata": self.parse_eskhata,
                 "tj_tawhidbank": self.parse_tawhidbank,
                 "tj_fmfb": self.parse_fmfb,
-                "tj_parse_tejaratbank": self.parse_tejaratbank,
+                "tj_tejaratbank": self.parse_tejaratbank,
                 "tj_halykbank": self.parse_halykbank,
                 "tj_arvand": self.parse_arvand,
                 "tj_nbp": self.parse_nbp,
