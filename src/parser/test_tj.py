@@ -110,6 +110,11 @@ class TestParsingTajikistan(unittest.TestCase):
         rates = self.parser.parse_humo()
         self.assert_rates("humo", rates)
 
+    # 18. Parse Ardo Capital (web page)
+    def test_parse_ardo(self):
+        rates = self.parser.parse_ardo()
+        self.assert_rates("ardo", rates)
+
     def assert_rates(self, bank, rates):
         print(bank + ":", rates)
         self.assertIsNotNone(rates['usd_buy'])

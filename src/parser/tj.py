@@ -494,6 +494,37 @@ class ParserTJ(base.Parser):
         except Exception as e:
             raise base.ParseError(e.message)
 
+    # 18. Parse Ardo Capital (web page)
+    def parse_ardo(self):
+        result = self.fetcher.fetch("http://ardocapital.tj/en/")
+        try:
+            context = BeautifulSoup(
+                result,
+                "html.parser",
+                parse_only=SoupStrainer('div', {'class': re.compile('kursArdo')})
+            )
+            tags = context.find_all('div', {"class": "kursBody"})
+            if tags:
+                rates = {}
+                for tag in tags:
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(tag.find_all('div')[1].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        continue
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(tag.find_all('div')[1].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        continue
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(tag.find_all('div')[1].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        continue
+                return rates
+            else:
+                raise base.ParseError("rates not found")
+        except Exception as e:
+            raise base.ParseError(e.message)
+
     # parse_all collects all rates for Tajikistan
     def parse_all(self):
         return self.handle_execute(
@@ -515,6 +546,7 @@ class ParserTJ(base.Parser):
                 "tj_nbt": self.parse_nb,
                 "tj_imonintl": self.parse_imonintl,
                 "tj_humo": self.parse_humo,
+                "tj_ardo": self.parse_ardo,
             },
             self.parse_nb_all
         )
