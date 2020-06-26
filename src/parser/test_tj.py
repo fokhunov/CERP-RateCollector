@@ -51,7 +51,6 @@ class TestParsingTajikistan(unittest.TestCase):
         self.assert_rates("fmfb", rates)
 
     # 7. Parse Tejaratbank (web page)
-    @unittest.skip("Tejaratbank rates")
     def test_parse_tejaratbank(self):
         rates = self.parser.parse_tejaratbank()
         self.assert_rates("tejaratbank", rates)

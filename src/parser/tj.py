@@ -170,8 +170,24 @@ class ParserTJ(base.Parser):
 
     # 7. Parse Tejaratbank (web page)
     def parse_tejaratbank(self):
-        # todo: implementation is missed.
-        return {}
+        result = self.fetcher.fetch("http://tejaratbank.tj/en/")
+        try:
+            context = BeautifulSoup(result, "html.parser",
+                                    parse_only=SoupStrainer(id='currencyconverter_minimalistic-2'))
+            tags = context.find_all('span', {"class": "currencyconverter-minimalistic-currency-price"})
+            if tags:
+                return {
+                    "usd_buy": rate.from_string(tags[0].getText()),
+                    "usd_sale": rate.from_string(tags[0].getText()),
+                    "eur_buy": rate.from_string(tags[1].getText()),
+                    "eur_sale": rate.from_string(tags[1].getText()),
+                    "rub_buy": rate.from_string(tags[2].getText()),
+                    "rub_sale": rate.from_string(tags[2].getText()),
+                }
+            else:
+                raise base.ParseError("rates not found")
+        except Exception as e:
+            raise base.ParseError(e.message)
 
     # 8. Parse Halykbank (web page)
     def parse_halykbank(self):
@@ -566,7 +582,7 @@ class ParserTJ(base.Parser):
                 "tj_eskhata": self.parse_eskhata,
                 "tj_tawhidbank": self.parse_tawhidbank,
                 "tj_fmfb": self.parse_fmfb,
-                # "tj_parse_tejaratbank": self.parse_tejaratbank, - todo: need to implement
+                "tj_parse_tejaratbank": self.parse_tejaratbank,
                 "tj_halykbank": self.parse_halykbank,
                 "tj_arvand": self.parse_arvand,
                 "tj_nbp": self.parse_nbp,
