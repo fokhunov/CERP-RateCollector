@@ -212,25 +212,27 @@ class ParserTJ(base.Parser):
             context = BeautifulSoup(
                 result,
                 "html.parser",
-                parse_only=SoupStrainer('div', {'class': re.compile('kurs-arvand')})
+                parse_only=SoupStrainer('div', {'class': re.compile('currencyContainer')})
             )
-            tags = context.find_all('li')
+            context = context.find_all('table', {"class": "exrate"})
+            context = context[1]
+            tags = context.find_all('tr')
             if tags:
                 rates = {}
                 for tag in tags:
-                    if re.search(r'US', tag.text):
-                        rates["usd_buy"] = rate.from_string(tag.find_all('span')[2].getText())
-                        rates["usd_sale"] = rate.from_string(tag.find_all('span')[3].getText())
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
 
-                    if re.search(r'EURO', tag.text):
-                        rates["eur_buy"] = rate.from_string(tag.find_all('span')[2].getText())
-                        rates["eur_sale"] = rate.from_string(tag.find_all('span')[3].getText())
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
 
-                    if re.search(r'Ruble', tag.text):
-                        rates["rub_buy"] = rate.from_string(tag.find_all('span')[2].getText())
-                        rates["rub_sale"] = rate.from_string(tag.find_all('span')[3].getText())
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
 
                 return rates
