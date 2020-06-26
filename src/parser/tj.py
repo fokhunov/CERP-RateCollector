@@ -578,6 +578,7 @@ class ParserTJ(base.Parser):
                 "tj_imonintl": self.parse_imonintl,
                 "tj_humo": self.parse_humo,
                 "tj_ardo": self.parse_ardo,
+                "tj_finca": self.parse_finca,
             },
             self.parse_nb_all
         )
