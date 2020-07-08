@@ -20,9 +20,7 @@ class ParserKG(base.Parser):
 
     # 1. Parse National Bank of Kyrgystan (api)
     def parse_nbkr(self, for_all=False):
-        result = self.fetcher.fetch(
-            "http://www.nbkr.kg/XML/daily.xml"
-        )
+        result = self.fetcher.fetch("http://www.nbkr.kg/XML/daily.xml")
 
         try:
             context = BeautifulSoup(result, 'html.parser')
@@ -95,16 +93,10 @@ class ParserKG(base.Parser):
 
     # 2. Parse BTA Bank (web page)
     def parse_bta(self):
-        result = self.fetcher.fetch(
-            "http://www.btabank.kg/ru/"
-        )
+        result = self.fetcher.fetch("http://www.btabank.kg/ru/")
 
         try:
-            context = BeautifulSoup(
-                result,
-                "html.parser",
-                parse_only=SoupStrainer('tbody', {'class': re.compile(r'js-rates-cash')})
-            )
+            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="cur_1"))
             tags = context.find_all('tr')
             if tags:
                 rates = {}
@@ -138,9 +130,7 @@ class ParserKG(base.Parser):
 
     # 3. Parse Demir Bank (web page)
     def parse_demir(self):
-        result = self.fetcher.fetch(
-            "http://www.demirbank.kg/ru/retail/home"
-        )
+        result = self.fetcher.fetch("http://www.demirbank.kg/ru/retail/home")
 
         try:
             context = BeautifulSoup(
@@ -181,9 +171,7 @@ class ParserKG(base.Parser):
 
     # 4. Parse Baitushum Bank (web page)
     def parse_baitushum(self):
-        result = self.fetcher.fetch(
-            "http://www.baitushum.kg/en/"
-        )
+        result = self.fetcher.fetch("http://www.baitushum.kg/en/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="rates-widget"))
@@ -221,9 +209,7 @@ class ParserKG(base.Parser):
 
     # 5. Parse Bank Asia (web page)
     def parse_bankasia(self):
-        result = self.fetcher.fetch(
-            "http://www.bankasia.kg/"
-        )
+        result = self.fetcher.fetch("http://www.bankasia.kg/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="home"))
@@ -260,9 +246,7 @@ class ParserKG(base.Parser):
 
     # 6. Parse Bank Kicb (web page)
     def parse_kicb(self):
-        result = self.fetcher.fetch(
-            "http://en.kicb.net/curency"
-        )
+        result = self.fetcher.fetch("http://en.kicb.net/curency")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="head"))
@@ -299,12 +283,15 @@ class ParserKG(base.Parser):
 
     # 7. Parse Ail Bank (web page)
     def parse_ab(self):
-        result = self.fetcher.fetch(
-            "http://www.ab.kg/ru/"
-        )
+        result = self.fetcher.fetch("http://www.ab.kg/ru/")
 
         try:
-            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="tab1"))
+            context = BeautifulSoup(
+                result,
+                "html.parser",
+                parse_only=SoupStrainer('div', {'class': re.compile(r'course')})
+            )
+            context = context.find_all('table', class_='course__table')[0]
             tags = context.find_all('tr')
             if tags:
                 rates = {}
@@ -338,9 +325,7 @@ class ParserKG(base.Parser):
 
     # 8. Parse Capital bank (web page)
     def parse_capitalbank(self):
-        result = self.fetcher.fetch(
-            "http://www.capitalbank.kg/"
-        )
+        result = self.fetcher.fetch("http://www.capitalbank.kg/")
 
         try:
             context = BeautifulSoup(
@@ -381,39 +366,40 @@ class ParserKG(base.Parser):
 
     # 9. Parse Doscredobank (web page)
     def parse_doscredo(self):
-        result = self.fetcher.fetch(
-            "http://www.doscredobank.kg/"
-        )
+        result = self.fetcher.fetch("https://www.dcb.kg/en/", mobile=True)
 
         try:
             context = BeautifulSoup(
                 result,
                 "html.parser",
-                parse_only=SoupStrainer('table', {'class': re.compile(r'b-currency-rates')})
+                parse_only=SoupStrainer(id="cash")
             )
-            tags = context.find('table')
-            tags = tags.find_all('tr')
+            tags = context.find_all('div', class_='grid-price')
             if tags:
                 rates = {}
                 for tag in tags:
                     if re.search(r'USD', tag.text):
-                        rates['usd_buy'] = rate.from_string(tag.findChildren('td')[0].getText())
-                        rates['usd_sale'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        divs = tag.find_all('div', class_='grid-item')
+                        rates['usd_buy'] = rate.from_string(divs[1].getText())
+                        rates['usd_sale'] = rate.from_string(divs[2].getText())
                         continue
 
                     if re.search(r'EUR', tag.text):
-                        rates['eur_buy'] = rate.from_string(tag.findChildren('td')[0].getText())
-                        rates['eur_sale'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        divs = tag.find_all('div', class_='grid-item')
+                        rates['eur_buy'] = rate.from_string(divs[1].getText())
+                        rates['eur_sale'] = rate.from_string(divs[2].getText())
                         continue
 
                     if re.search(r'RUB', tag.text):
-                        rates['rub_buy'] = rate.from_string(tag.findChildren('td')[0].getText())
-                        rates['rub_sale'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        divs = tag.find_all('div', class_='grid-item')
+                        rates['rub_buy'] = rate.from_string(divs[1].getText())
+                        rates['rub_sale'] = rate.from_string(divs[2].getText())
                         continue
 
                     if re.search(r'KZT', tag.text):
-                        rates['kzt_buy'] = rate.from_string(tag.findChildren('td')[0].getText())
-                        rates['kzt_sale'] = rate.from_string(tag.findChildren('td')[1].getText())
+                        divs = tag.find_all('div', class_='grid-item')
+                        rates['kzt_buy'] = rate.from_string(divs[1].getText())
+                        rates['kzt_sale'] = rate.from_string(divs[2].getText())
                         continue
 
                 return rates
@@ -425,9 +411,7 @@ class ParserKG(base.Parser):
 
     # 10. Parse Сbk bank (web page)
     def parse_cbk(self):
-        result = self.fetcher.fetch(
-            "http://www.cbk.kg/"
-        )
+        result = self.fetcher.fetch("http://www.cbk.kg/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="rates-table"))
@@ -452,9 +436,7 @@ class ParserKG(base.Parser):
 
     # 11. Parse Rsk bank (web page)
     def parse_rsk(self):
-        result = self.fetcher.fetch(
-            "http://www.rsk.kg/"
-        )
+        result = self.fetcher.fetch("http://www.rsk.kg/")
 
         try:
             context = BeautifulSoup(
@@ -496,9 +478,7 @@ class ParserKG(base.Parser):
 
     # 12. Parse Optima bank (web page)
     def parse_optimabank(self):
-        result = self.fetcher.fetch(
-            "https://www.optimabank.kg/en/currency-rates.html?view=default"
-        )
+        result = self.fetcher.fetch("https://www.optimabank.kg/en/currency-rates.html?view=default")
 
         try:
             context = BeautifulSoup(
@@ -540,9 +520,7 @@ class ParserKG(base.Parser):
 
     # 13. Parse Rib (web page)
     def parse_rib(self):
-        result = self.fetcher.fetch(
-            "http://www.rib.kg/"
-        )
+        result = self.fetcher.fetch("http://www.rib.kg/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="rosin"))
@@ -579,9 +557,7 @@ class ParserKG(base.Parser):
 
     # 14. Parse Kkb bank (web page)
     def parse_kkb(self):
-        result = self.fetcher.fetch(
-            "http://kkb.kg/"
-        )
+        result = self.fetcher.fetch("http://kkb.kg/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="tab1"))
@@ -618,9 +594,7 @@ class ParserKG(base.Parser):
 
     # 15. Parse Kompanion bank (web page)
     def parse_kompanion(self):
-        result = self.fetcher.fetch(
-            "http://www.kompanion.kg/"
-        )
+        result = self.fetcher.fetch("http://www.kompanion.kg/")
 
         try:
             context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="nal"))
@@ -673,7 +647,7 @@ class ParserKG(base.Parser):
                 "kg_optimabank": self.parse_optimabank,
                 "kg_rib": self.parse_rib,
                 "kg_kkb": self.parse_kkb,
-                "kg_kompanion": self.parse_kompanion,
+                # "kg_kompanion": self.parse_kompanion, - doesn't work
             },
             self.parse_nbkr_all
         )

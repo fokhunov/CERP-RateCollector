@@ -18,7 +18,7 @@ class TestParsingKyrgyzstan(unittest.TestCase):
         rates = self.parser.parse_nbkr()
         self.assert_rates("nbkr", rates)
 
-    # 2. TODO: FIX Parse BTA Bank (web page)
+    # 2. Parse BTA Bank (web page)
     def test_parse_bta(self):
         rates = self.parser.parse_bta()
         self.assert_rates("bta", rates)
@@ -48,7 +48,7 @@ class TestParsingKyrgyzstan(unittest.TestCase):
         rates = self.parser.parse_ab()
         self.assert_rates("ab", rates)
 
-    # 8. Parse Capital bank (web page)
+    # 8. TODO: EMPTY RATES: Parse Capital bank (web page)
     def test_parse_capitalbank(self):
         rates = self.parser.parse_capitalbank()
         self.assert_rates("capitalbank", rates)
