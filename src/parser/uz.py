@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import re
 
 from bs4 import BeautifulSoup
@@ -9,6 +10,7 @@ from bs4 import SoupStrainer
 from src.parser import base
 from src.parser.internal import currency
 from src.parser.internal import rate_helper as rate
+from src.parser.internal import time_helper as time
 
 
 class ParserUZ(base.Parser):
@@ -19,20 +21,17 @@ class ParserUZ(base.Parser):
 
     # 1. Parse Central Bank of Uzbekistan (web page)
     def parse_cbu(self):
-        result = self.fetcher.fetch("http://www.cbu.uz/ru/")
         try:
-            context = BeautifulSoup(
-                result,
-                'html.parser',
-                parse_only=SoupStrainer('div', {'class': re.compile(r'rates-list')})
-            )
-            tags = context.find_all('li')
+            now = time.now_date_key(self.country).split("-")
+            param_date = now[2] + "." + now[1] + "." + now[0]
+            result = self.fetcher.fetch("http://www.cbu.uz/common/json/", data={"date": param_date})
+            tags = json.loads(result)
             if tags:
                 rates = {}
                 for i in range(len(tags)):
-                    parts = tags[i].getText().split()
-                    code = parts[1]
-                    value = rate.from_string(parts[3])
+                    item = tags[i]
+                    code = item['Ccy']
+                    value = rate.from_string(item['Rate'])
                     if code == "USD":
                         rates["usd_buy"] = rates["usd_sale"] = value
                     elif code == "EUR":
@@ -47,26 +46,21 @@ class ParserUZ(base.Parser):
 
     # Parse Central Bank of Uzbekistan all rates (web page)
     def parse_cbu_all(self):
-        result = self.fetcher.fetch("http://www.cbu.uz/ru/")
         try:
-            context = BeautifulSoup(
-                result,
-                'html.parser',
-                parse_only=SoupStrainer('div', {'class': re.compile(r'rates-list')})
-            )
-            tags = context.find_all('li')
+            now = time.now_date_key(self.country).split("-")
+            param_date = now[2] + "." + now[1] + "." + now[0]
+            result = self.fetcher.fetch("http://www.cbu.uz/common/json/", data={"date": param_date})
+            tags = json.loads(result)
             if tags:
                 rates = {}
                 for i in range(len(tags)):
-                    parts = tags[i].getText().split()
-                    code = parts[1]
+                    item = tags[i]
+                    code = item['Ccy']
                     if code in currency.ALLOWED:
-                        nominal = int(parts[0])
-                        value = rate.from_string(parts[3])
                         rates[code] = {
                             "code": code,
-                            "nominal": nominal,
-                            "value": value
+                            "nominal": item['Nominal'],
+                            "value": rate.from_string(item['Rate'])
                         }
                 return rates
             else:
@@ -152,14 +146,14 @@ class ParserUZ(base.Parser):
                     "eur_buy": rate.from_string(buy[1].getText()),
                     "eur_sale": rate.from_string(sale[1].getText()),
                     "rub_buy": rate.from_string(buy[5].getText()),
-                    "rub_sale": rate.from_string(buy[5].getText()),
+                    "rub_sale": rate.from_string(sale[5].getText()),
                 }
             else:
                 raise base.ParseError("rates not found")
         except Exception as e:
             raise base.ParseError(e.message)
 
-    # 5. Parse Mikrokreditbank (web page)
+    # 5. INACTIVE: Parse Mikrokreditbank (web page)
     def parse_mikrokreditbank(self):
         result = self.fetcher.fetch("https://mikrokreditbank.uz/ru/")
         try:
@@ -192,30 +186,25 @@ class ParserUZ(base.Parser):
 
     # 6. Parse Turonbank (web page)
     def parse_turonbank(self):
-        result = self.fetcher.fetch("http://www.turonbank.uz/")
+        result = self.fetcher.fetch("http://www.turonbank.uz/ru/")
         try:
             context = BeautifulSoup(
                 result,
                 'html.parser',
-                parse_only=SoupStrainer('div', {'class': r'exchange-rates'})
+                parse_only=SoupStrainer('table', {'class': 'currency__rate_table'})
             )
             tags = context.find_all('tr')
             if tags:
-                rates = {}
-                for tag in tags:
-                    if re.search(r'USD', tag.text):
-                        rates['usd_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-                        rates['usd_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-                        continue
-                    if re.search(r'EUR', tag.text):
-                        rates['eur_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-                        rates['eur_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-                        continue
-                    if re.search(r'RUB', tag.text):
-                        rates['rub_buy'] = rate.from_string(tag.findChildren('td')[1].getText())
-                        rates['rub_sale'] = rate.from_string(tag.findChildren('td')[2].getText())
-                        continue
-                return rates
+                buy = tags[1].find_all('td')
+                sale = tags[2].find_all('td')
+                return {
+                    "usd_buy": rate.from_string(buy[0].getText()),
+                    "usd_sale": rate.from_string(sale[0].getText()),
+                    "eur_buy": rate.from_string(buy[1].getText()),
+                    "eur_sale": rate.from_string(sale[1].getText()),
+                    "rub_buy": rate.from_string(buy[4].getText()),
+                    "rub_sale": rate.from_string(sale[4].getText()),
+                }
             else:
                 raise base.ParseError("rates not found")
         except Exception as e:
@@ -232,21 +221,14 @@ class ParserUZ(base.Parser):
             )
             tags = context.find_all('tr')
             if tags:
-                rates = {}
-                for tag in tags:
-                    if re.search(r'USD', tag.text):
-                        rates['usd_buy'] = rate.from_string(tag.findChildren('td')[5].getText())
-                        rates['usd_sale'] = rate.from_string(tag.findChildren('td')[4].getText())
-                        continue
-                    if re.search(r'EUR', tag.text):
-                        rates['eur_buy'] = rate.from_string(tag.findChildren('td')[5].getText())
-                        rates['eur_sale'] = rate.from_string(tag.findChildren('td')[4].getText())
-                        continue
-                    if re.search(r'RUB', tag.text):
-                        rates['rub_buy'] = rate.from_string(tag.findChildren('td')[5].getText())
-                        rates['rub_sale'] = rate.from_string(tag.findChildren('td')[4].getText())
-                        continue
-                return rates
+                usd = tags[2].find_all('td')
+                eur = tags[3].find_all('td')
+                return {
+                    "usd_buy": rate.from_string(usd[4].getText()),
+                    "usd_sale": rate.from_string(usd[3].getText()),
+                    "eur_buy": rate.from_string(eur[4].getText()),
+                    "eur_sale": rate.from_string(eur[3].getText()),
+                }
             else:
                 raise base.ParseError("rates not found")
         except Exception as e:
@@ -358,7 +340,7 @@ class ParserUZ(base.Parser):
                 "uz_nbu": self.parse_nbu,
                 "uz_kdb": self.parse_kdb,
                 "uz_xb": self.parse_xb,
-                "uz_mikrokreditbank": self.parse_mikrokreditbank,
+                # "uz_mikrokreditbank": self.parse_mikrokreditbank,
                 "uz_turonbank": self.parse_turonbank,
                 "uz_aloqabank": self.parse_aloqabank,
                 "uz_aab": self.parse_aab,
