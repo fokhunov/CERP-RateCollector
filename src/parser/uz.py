@@ -59,7 +59,7 @@ class ParserUZ(base.Parser):
                     if code in currency.ALLOWED:
                         rates[code] = {
                             "code": code,
-                            "nominal": item['Nominal'],
+                            "nominal": int(item['Nominal']),
                             "value": rate.from_string(item['Rate'])
                         }
                 return rates
