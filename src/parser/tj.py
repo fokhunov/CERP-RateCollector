@@ -42,23 +42,26 @@ class ParserTJ(base.Parser):
 
     # 2. Parse Amonatbank (web page)
     def parse_amonat(self):
-        result = self.fetcher.fetch("http://www.amonatbonk.tj/en/")
+        result = self.fetcher.fetch("https://new.amonatbonk.tj/ru/")
         try:
-            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="tab2"))
-            tags = context.find_all("span", {"class": "coll3"})
-
+            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id="currency"))
+            tags = context.find_all("table")[0].find_all('tr')
             if tags:
-                usd = tags[0].text.strip().split("|")
-                eur = tags[1].text.strip().split("|")
-                rub = tags[2].text.strip().split("|")
-                return {
-                    "usd_buy": rate.from_string(usd[0]),
-                    "usd_sale": rate.from_string(usd[1]),
-                    "eur_buy": rate.from_string(eur[0]),
-                    "eur_sale": rate.from_string(eur[1]),
-                    "rub_buy": rate.from_string(rub[0]),
-                    "rub_sale": rate.from_string(rub[1]),
-                }
+                rates = {}
+                for tag in tags:
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(tag.find_all('td')[2].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('td')[3].getText())
+                        continue
+                return rates
             else:
                 raise base.ParseError("rates not found")
         except Exception as e:
@@ -170,19 +173,19 @@ class ParserTJ(base.Parser):
 
     # 7. Parse Tejaratbank (web page)
     def parse_tejaratbank(self):
-        result = self.fetcher.fetch("http://tejaratbank.tj/en/")
+        result = self.fetcher.fetch("http://tejaratbank.tj/en/#exchange")
         try:
-            context = BeautifulSoup(result, "html.parser",
-                                    parse_only=SoupStrainer(id='currencyconverter_minimalistic-2'))
-            tags = context.find_all('span', {"class": "currencyconverter-minimalistic-currency-price"})
-            if tags:
+            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id='currency'))
+            buys = context.find(id='text-3').get_text(separator='\n', strip=True).split()
+            sales = context.find(id='text-4').get_text(separator='\n', strip=True).split()
+            if buys and sales:
                 return {
-                    "usd_buy": rate.from_string(tags[0].getText()),
-                    "usd_sale": rate.from_string(tags[0].getText()),
-                    "eur_buy": rate.from_string(tags[1].getText()),
-                    "eur_sale": rate.from_string(tags[1].getText()),
-                    "rub_buy": rate.from_string(tags[2].getText()),
-                    "rub_sale": rate.from_string(tags[2].getText()),
+                    "usd_buy": rate.from_string(buys[0]),
+                    "usd_sale": rate.from_string(sales[0]),
+                    "eur_buy": rate.from_string(buys[1]),
+                    "eur_sale": rate.from_string(sales[1]),
+                    "rub_buy": rate.from_string(buys[2]),
+                    "rub_sale": rate.from_string(sales[2]),
                 }
             else:
                 raise base.ParseError("rates not found")
@@ -193,7 +196,8 @@ class ParserTJ(base.Parser):
     def parse_halykbank(self):
         result = self.fetcher.fetch("https://halykbank.tj/en/exchange-rates")
         try:
-            context = BeautifulSoup(result, "html.parser", parse_only=SoupStrainer(id='category1'))
+            context = BeautifulSoup(result, "html.parser")
+            context = context.findAll("div", {"class": "exchange_rates"})[0]
             tags = context.find_all('div', {"class": "currency__columns"})
             if tags:
                 rates = {}
@@ -379,8 +383,7 @@ class ParserTJ(base.Parser):
     # 14. Parse Alif Bank (web page)
     def parse_alif(self):
         currencies = ["usd", "eur", "rub"]
-        now = time.now_date_key(self.country).split("-")
-        param_date = now[0] + "-" + now[1] + "-" + now[2]
+        param_date = time.now_date_key_wlz(self.country)
         endpoint = "https://alif.tj/api/currency/index.php?date=" + param_date + "&currency="
         rates = {}
         for c in currencies:
@@ -455,27 +458,39 @@ class ParserTJ(base.Parser):
 
     # 16. Parse Imon International (api)
     def parse_imonintl(self):
-        result = self.fetcher.fetch("https://imon.tj/frontend/web/site/currency?lang=en-US")
+        result = self.fetcher.fetch("https://imon.tj/")
         try:
-            result = json.loads(result)
-            buy = result.get("IMON")
-            sale = result.get("IMON1")
-            rates = {}
-            for r1 in buy:
-                if buy[r1]['currency_from'] == "USD":
-                    rates["usd_buy"] = rate.from_string(buy[r1]['rate'])
-                if buy[r1]['currency_from'] == "EUR":
-                    rates["eur_buy"] = rate.from_string(buy[r1]['rate'])
-                if buy[r1]['currency_from'] == "RUB":
-                    rates["rub_buy"] = rate.from_string(buy[r1]['rate'])
-            for r2 in sale:
-                if sale[r2]['currency_to'] == "USD":
-                    rates["usd_sale"] = rate.from_string(sale[r2]['rate'])
-                if sale[r2]['currency_to'] == "EUR":
-                    rates["eur_sale"] = rate.from_string(sale[r2]['rate'])
-                if sale[r2]['currency_to'] == "RUB":
-                    rates["rub_sale"] = rate.from_string(sale[r2]['rate'])
-            return rates
+            context = BeautifulSoup(
+                result,
+                "html.parser",
+                parse_only=SoupStrainer('div', {'class': re.compile('row')})
+            )
+            print(context)
+            context = context.find_all('div', {"class": "col-12"})
+            exit()
+            context = context[1]
+            tags = context.find_all('tr')
+            if tags:
+                rates = {}
+                for tag in tags:
+                    if re.search(r'USD', tag.text):
+                        rates["usd_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('td')[2].getText())
+                        continue
+
+                    if re.search(r'EUR', tag.text):
+                        rates["eur_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('td')[2].getText())
+                        continue
+
+                    if re.search(r'RUB', tag.text):
+                        rates["rub_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('td')[2].getText())
+                        continue
+
+                return rates
+            else:
+                raise base.ParseError("rates not found")
         except Exception as e:
             raise base.ParseError(e.message)
 
@@ -512,28 +527,28 @@ class ParserTJ(base.Parser):
 
     # 18. Parse Ardo Capital (web page)
     def parse_ardo(self):
-        result = self.fetcher.fetch("http://ardocapital.tj/en/")
+        result = self.fetcher.fetch("http://ardocapital.tj/en/home/")
         try:
             context = BeautifulSoup(
                 result,
                 "html.parser",
-                parse_only=SoupStrainer('div', {'class': re.compile('kursArdo')})
+                parse_only=SoupStrainer(id="1609155104387-2384e553-5aad")
             )
-            tags = context.find_all('div', {"class": "kursBody"})
+            tags = context.find_all('tr')
             if tags:
                 rates = {}
-                for tag in tags:
+                for tag in tags[:4]:
                     if re.search(r'USD', tag.text):
-                        rates["usd_buy"] = rate.from_string(tag.find_all('div')[1].getText())
-                        rates["usd_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        rates["usd_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["usd_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
                     if re.search(r'EUR', tag.text):
-                        rates["eur_buy"] = rate.from_string(tag.find_all('div')[1].getText())
-                        rates["eur_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        rates["eur_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["eur_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
                     if re.search(r'RUB', tag.text):
-                        rates["rub_buy"] = rate.from_string(tag.find_all('div')[1].getText())
-                        rates["rub_sale"] = rate.from_string(tag.find_all('div')[2].getText())
+                        rates["rub_buy"] = rate.from_string(tag.find_all('td')[1].getText())
+                        rates["rub_sale"] = rate.from_string(tag.find_all('td')[2].getText())
                         continue
                 return rates
             else:
@@ -576,22 +591,22 @@ class ParserTJ(base.Parser):
     def parse_all(self):
         return self.handle_execute(
             {
-                # "tj_agro": self.parse_agro, - bank in bankruptcy
+                # "tj_agro": self.parse_agro,       - bank in bankruptcy
                 "tj_amonat": self.parse_amonat,
-                # "tj_tsb": self.parse_tsb,   - bank in bankruptcy
+                # "tj_tsb": self.parse_tsb,         - bank in bankruptcy
                 "tj_eskhata": self.parse_eskhata,
                 "tj_tawhidbank": self.parse_tawhidbank,
                 "tj_fmfb": self.parse_fmfb,
                 "tj_tejaratbank": self.parse_tejaratbank,
                 "tj_halykbank": self.parse_halykbank,
-                "tj_arvand": self.parse_arvand,
-                "tj_nbp": self.parse_nbp,
+                # "tj_arvand": self.parse_arvand,   - no exchange rates on website
+                # "tj_nbp": self.parse_nbp,         - bank liquidated
                 "tj_spitamen": self.parse_spitamen,
                 "tj_ibt": self.parse_ibt,
                 "tj_cbt": self.parse_cbt,
                 "tj_alif": self.parse_alif,
                 "tj_nbt": self.parse_nb,
-                "tj_imonintl": self.parse_imonintl,
+                # "tj_imonintl": self.parse_imonintl,   - couldn't parse rates from website
                 "tj_humo": self.parse_humo,
                 "tj_ardo": self.parse_ardo,
                 "tj_finca": self.parse_finca,

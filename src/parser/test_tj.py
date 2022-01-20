@@ -20,7 +20,6 @@ class TestParsingTajikistan(unittest.TestCase):
         self.assert_rates("agro", rates)
 
     # 2. Parse Amonatbank (web page)
-    @unittest.skip("Amonatbank rates")
     def test_parse_amonat(self):
         rates = self.parser.parse_amonat()
         self.assert_rates("amonat", rates)
@@ -53,18 +52,24 @@ class TestParsingTajikistan(unittest.TestCase):
     # 7. Parse Tejaratbank (web page)
     def test_parse_tejaratbank(self):
         rates = self.parser.parse_tejaratbank()
-        self.assert_rates("tejaratbank", rates)
+        print("tejaratbank:", rates)
+        self.assertIsNotNone(rates['usd_buy'])
+        self.assertIsNotNone(rates['usd_sale'])
+        self.assertIsNotNone(rates['eur_buy'])
+        self.assertIsNotNone(rates['eur_sale'])
 
     # 8. Parse Halykbank (web page)
     def test_parse_halykbank(self):
         rates = self.parser.parse_halykbank()
         self.assert_rates("halykbank", rates)
 
+    @unittest.skip("Arvand rates")
     # 9. Parse Arvand (web page)
     def test_parse_arvand(self):
         rates = self.parser.parse_arvand()
         self.assert_rates("arvand", rates)
 
+    @unittest.skip("NBP Pakistan rates")
     # 10. Parse NBP Pakistan (web page)
     def test_parse_nbp(self):
         rates = self.parser.parse_nbp()
@@ -121,12 +126,12 @@ class TestParsingTajikistan(unittest.TestCase):
 
     def assert_rates(self, bank, rates):
         print(bank + ":", rates)
-        self.assertIsNotNone(rates['usd_buy'])
-        self.assertIsNotNone(rates['usd_sale'])
-        self.assertIsNotNone(rates['eur_buy'])
-        self.assertIsNotNone(rates['eur_sale'])
-        self.assertIsNotNone(rates['rub_buy'])
-        self.assertIsNotNone(rates['rub_sale'])
+        self.assertGreater(rates['usd_buy'], 0)
+        self.assertGreater(rates['usd_sale'], 0)
+        self.assertGreater(rates['eur_buy'], 0)
+        self.assertGreater(rates['eur_sale'], 0)
+        self.assertGreater(rates['rub_buy'], 0)
+        self.assertGreater(rates['rub_sale'], 0)
 
 
 if __name__ == "__main__":

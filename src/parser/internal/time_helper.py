@@ -37,3 +37,17 @@ def now_date_key(country="tj"):
 
     today = datetime.now(timezone(tz))
     return today.strftime("%Y-%-m-%-d")
+
+
+# now_date_key_wlz() returns same date as now_date_key() but with leading zeros
+def now_date_key_wlz(country="tj"):
+    if country == "kg":
+        tz = 'Asia/Bishkek'
+    elif country == "kz":
+        tz = 'Asia/Almaty'
+    else:
+        # uzbekistan on same timezone
+        tz = 'Asia/Dushanbe'
+
+    today = datetime.now(timezone(tz))
+    return today.strftime("%Y-%m-%d")

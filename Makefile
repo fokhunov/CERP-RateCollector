@@ -24,7 +24,8 @@ local-invoke:
 	--debug
 
 
-export AWS_PROFILE=default
+export AWS_PROFILE=cerp_prod_aws
+export AWS_DEFAULT_REGION=us-east-1
 c := tj
 e := staging
 v :=
