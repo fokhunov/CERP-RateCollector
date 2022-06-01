@@ -9,6 +9,7 @@ class Parser:
         self.country = country
         self.log = logger
         self.fetcher = fetcher
+        self.debug: str
 
     def handle_execute(self, b_rate_functions, nb_rate_function):
         self.debug("start parsing")
@@ -40,30 +41,27 @@ class Parser:
         return result
 
     def safe_parsing(self, func, bank_id):
+        result = None
         try:
             result = func()
             if rate.is_empty(result):
                 raise ParseError("rates are empty")
-
-            return result
-
         except Exception as e:
             self.log.error({
                 "msg": str(e),
                 "country": self.country,
                 "bank_id": bank_id,
             })
-            return None
+        return result
 
-    def remove_nones(self, rates):
-        ids = []
-
+    @staticmethod
+    def remove_nones(rates):
+        empty_ids = []
         for i in rates:
             if rates[i] is None:
-                ids.append(i)
-                continue
+                empty_ids.append(i)
 
-        for i in ids:
+        for i in empty_ids:
             del rates[i]
 
         return rates
