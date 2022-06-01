@@ -56,14 +56,10 @@ class Parser:
 
     @staticmethod
     def remove_nones(rates):
-        empty_ids = []
-        for i in rates:
-            if rates[i] is None:
-                empty_ids.append(i)
-
-        for i in empty_ids:
-            del rates[i]
-
+        """ Remove empty rates """
+        for rate in rates:
+            if rates[rate] is None:
+                del rates[rate]
         return rates
 
     def __log_body__(self, msg):
