@@ -9,7 +9,6 @@ class Parser:
         self.country = country
         self.log = logger
         self.fetcher = fetcher
-        self.debug: str
 
     def handle_execute(self, b_rate_functions, nb_rate_function):
         self.debug("start parsing")
