@@ -40,32 +40,25 @@ class Parser:
         return result
 
     def safe_parsing(self, func, bank_id):
+        result = None
         try:
             result = func()
             if rate.is_empty(result):
                 raise ParseError("rates are empty")
-
-            return result
-
         except Exception as e:
             self.log.error({
                 "msg": str(e),
                 "country": self.country,
                 "bank_id": bank_id,
             })
-            return None
+        return result
 
-    def remove_nones(self, rates):
-        ids = []
-
-        for i in rates:
-            if rates[i] is None:
-                ids.append(i)
-                continue
-
-        for i in ids:
-            del rates[i]
-
+    @staticmethod
+    def remove_nones(rates):
+        """ Remove empty rates """
+        for rate in rates:
+            if rates[rate] is None:
+                del rates[rate]
         return rates
 
     def __log_body__(self, msg):
